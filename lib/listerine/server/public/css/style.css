@@ -1,0 +1,79 @@
+body {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  background: #CDD3DB;
+  margin:0;
+}
+
+
+div#monitors {
+  background-color: #fff;
+  color: #404040;
+  width: 960px;
+  margin: auto;
+  padding: 12px;
+  border-left: 1px solid #000;
+  border-right: 1px solid #000;
+  border-bottom: 1px solid #000;
+}
+
+div.monitor {
+
+}
+
+div.monitor span.result {
+  padding: 8px;
+  margin-right: 8px;
+  display: block;
+  float:left;
+}
+
+div.monitor span.success {
+  background-color: green;
+}
+
+div.monitor span.failed {
+  background-color: red;
+}
+
+div.monitor span.pending {
+  background-color: orange;
+}
+
+div.monitor span.disabled {
+  background-color: #cdd3db;
+}
+
+div.monitor-list {
+  margin-left: 8px;
+  padding-left: 12px;
+  border-left: 3px solid #cdd3db;
+}
+
+p.last-ran {
+  font-size: 11px;
+  font-style: italic;
+  float: left;
+  margin: 1px 0;
+}
+
+div.environment {
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 2px;
+}
+
+div.clear {
+  clear: both;
+}
+
+div.name {
+  font-size: 14px;
+  font-weight: bold;
+  margin: 8px 0;
+}
+
+footer {
+  text-align: center;
+  color: #404040;
+}

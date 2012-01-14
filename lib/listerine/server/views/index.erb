@@ -1,0 +1,30 @@
+<div id="monitors">
+  <h1>Listerine Functional Monitors</h1>
+  <% @monitors.each do |name| %>
+    <div class="monitor">
+      <div class="name">
+        <%= name %>
+      </div>
+      <% @persistence.environments(name).each do |env| %>
+        <% outcomes = @persistence.outcomes(name, env, :sort => "time ASC") %>
+        <% radio_id = "#{name_to_id(name)}_#{env}" %>
+        <% if env != Listerine::Persistence::Sqlite::DEFAULT_ENV_NAME %>
+          <div class="environment">
+            <%= env.capitalize %>
+          </div>
+        <% end %>
+        <div class="monitor-list">
+          <div class="monitor-name">
+            <input type="checkbox" class="monitor-enable" <% unless @persistence.disabled?(name, env) %> checked="checked"<% end %> id="<%= radio_id %>" />
+            <input type="hidden" value="<%= name %>" />
+            <label for="<%=radio_id%>">Enabled</label>
+          </div>
+          
+          <span class="result <%= outcomes.last.result %>" title="<%= outcomes.last.result.capitalize %>"></span>
+          <p class="last-ran"><%= distance_of_time_in_words(outcomes.last.time, @since, true).capitalize %> ago</p>
+          <div class="clear"></div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

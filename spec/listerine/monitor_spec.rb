@@ -464,6 +464,24 @@ describe Listerine::Monitor do
     end
   end
 
+  context "disabling and enabling" do
+    it "can be done on a per-environment basis" do
+      m = Listerine::Monitor.new do
+        name "My monitor"
+        assert {true}
+        environments :staging, :production
+      end
+
+      m.disable(:staging)
+      m.disabled?(:staging).should be true
+      m.disabled?(:production).should be false
+
+      m.enable(:staging)
+      m.disabled?(:staging).should be false
+      m.disabled?(:production).should be false
+    end
+  end
+
   context "#if_failing" do
     it "creates a code block to be run if the monitor has failed" do
       $global = 0

@@ -64,11 +64,11 @@ module Listerine
         yield count
       end
 
-      self.persistence.write(failure_count_key(), count)
+      write(failure_count_key(), count)
     end
 
     def failure_count
-      self.persistence.read(failure_count_key()).to_i || 0
+      read(failure_count_key()).to_i || 0
     end
 
     def failure_count_key
@@ -76,19 +76,26 @@ module Listerine
     end
 
     # Allows you to disable a monitor
-    def disable
-      self.persistence.write(disable_key(), true)
+    def disable(environment = current_environment)
+      self.persistence.disable(self.name, environment)
     end
 
     # Re enables a monitor
-    def enable
-      self.persistence.write(disable_key(), false)
+    def enable(environment = current_environment)
+      self.persistence.enable(self.name, environment)
+    end
+
+    def write(key, value, environment = current_environment)
+      self.persistence.write(key, value, environment)
+    end
+
+    def read(key, environment = current_environment)
+      self.persistence.read(key, environment)
     end
 
     # Returns true if a monitor is disabled
-    def disabled?
-      disabled_value = self.persistence.read(disable_key)
-      !disabled_value.nil? && disabled_value == true.to_s
+    def disabled?(environment = current_environment)
+      self.persistence.disabled?(self.name, environment)
     end
 
     def notify
@@ -167,7 +174,7 @@ module Listerine
     end
 
     def persistence_key
-      self.current_environment.nil? ? name : "#{name}_#{self.current_environment}"
+      name
     end
 
     def persistence
@@ -202,12 +209,8 @@ module Listerine
       end
     end
 
-    def disable_key
-      "#{persistence_key()}_disabled"
-    end
-
-    def update_stats(outcome)
-      self.persistence.write_outcome(self.name, outcome)
+    def update_stats(outcome, environment = current_environment)
+      self.persistence.write_outcome(self.name, outcome, environment)
     end
 
     protected

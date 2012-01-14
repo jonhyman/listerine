@@ -5,8 +5,8 @@ describe Listerine::Persistence::Sqlite do
   let(:key2) {"key2"}
   let(:value) {"value"}
   let(:value2) {"value2"}
-  let(:name) {"foo"}
-
+  let(:name) {"My monitor"}
+  let(:env) {"production"}
 
   before :each do
     persistence.destroy
@@ -24,36 +24,36 @@ describe Listerine::Persistence::Sqlite do
 
   context "#read" do
     it "reads a key" do
-      persistence.write(key, value)
-      persistence.read(key).should == value
+      persistence.write(key, value, env)
+      persistence.read(key, env).should == value
     end
   end
 
   context "#write" do
     it "writes a key-value pair" do
-      persistence.write(key, value)
-      persistence.read(key).should == value
-      persistence.write(key, value2)
-      persistence.read(key).should == value2
+      persistence.write(key, value, env)
+      persistence.read(key, env).should == value
+      persistence.write(key, value2, env)
+      persistence.read(key, env).should == value2
     end
   end
 
   context "#exists?" do
     it "returns true if a given key exists" do
-      persistence.write(key, value)
-      persistence.exists?(key).should be true
+      persistence.write(key, value, env)
+      persistence.exists?(key, env).should be true
     end
 
     it "returns false if a given key does not exist" do
-      persistence.exists?(key).should be false
+      persistence.exists?(key, env).should be false
     end
   end
 
   context "#write_outcome" do
     it "writes the outcome for a given monitor name" do
       expect {
-        persistence.write_outcome(name, Listerine::Outcome.new(true))
-      }.to change{persistence.outcomes(name).length}.from(0).to(1)
+        persistence.write_outcome(name, Listerine::Outcome.new(true), env)
+      }.to change{persistence.outcomes(name, env).length}.from(0).to(1)
     end
   end
 
@@ -65,10 +65,10 @@ describe Listerine::Persistence::Sqlite do
       outcome1 = Listerine::Outcome.new(true, now)
       outcome2 = Listerine::Outcome.new(false, ten_secs_ago)
 
-      persistence.write_outcome(name, outcome1)
-      persistence.write_outcome(name, outcome2)
+      persistence.write_outcome(name, outcome1, env)
+      persistence.write_outcome(name, outcome2, env)
 
-      outcomes = persistence.outcomes(name)
+      outcomes = persistence.outcomes(name, env)
       outcomes.length.should == 2
       outcomes.first.result.should == outcome1.result
       outcomes.first.time.to_i.should == outcome1.time.to_i
@@ -83,10 +83,10 @@ describe Listerine::Persistence::Sqlite do
       outcome1 = Listerine::Outcome.new(true, now)
       outcome2 = Listerine::Outcome.new(false, ten_secs_ago)
 
-      persistence.write_outcome(name, outcome1)
-      persistence.write_outcome(name, outcome2)
+      persistence.write_outcome(name, outcome1, env)
+      persistence.write_outcome(name, outcome2, env)
 
-      outcomes = persistence.outcomes(name, :limit => 1)
+      outcomes = persistence.outcomes(name, env, :limit => 1)
       outcomes.length.should == 1
       outcomes.first.result.should == outcome1.result
     end
@@ -98,10 +98,10 @@ describe Listerine::Persistence::Sqlite do
       outcome1 = Listerine::Outcome.new(true, now)
       outcome2 = Listerine::Outcome.new(false, ten_secs_ago)
 
-      persistence.write_outcome(name, outcome1)
-      persistence.write_outcome(name, outcome2)
+      persistence.write_outcome(name, outcome1, env)
+      persistence.write_outcome(name, outcome2, env)
 
-      outcomes = persistence.outcomes(name, :sort => "time")
+      outcomes = persistence.outcomes(name, env, :sort => "time")
       outcomes.length.should == 2
       outcomes.first.result.should == outcome2.result
       outcomes.first.time.to_i.should == outcome2.time.to_i
@@ -116,10 +116,10 @@ describe Listerine::Persistence::Sqlite do
       outcome1 = Listerine::Outcome.new(true, now)
       outcome2 = Listerine::Outcome.new(false, ten_secs_ago)
 
-      persistence.write_outcome(name, outcome1)
-      persistence.write_outcome(name, outcome2)
+      persistence.write_outcome(name, outcome1, env)
+      persistence.write_outcome(name, outcome2, env)
 
-      outcomes = persistence.outcomes(name, :sort => "time", :limit => 1)
+      outcomes = persistence.outcomes(name, env, :sort => "time", :limit => 1)
       outcomes.length.should == 1
       outcomes.first.result.should == outcome2.result
       outcomes.first.time.to_i.should == outcome2.time.to_i
@@ -128,13 +128,56 @@ describe Listerine::Persistence::Sqlite do
 
   context "#destroy" do
     it "drops and recreates the tables" do
-      persistence.write(key, value)
-      persistence.write(key2, value)
-      persistence.write_outcome(name, Listerine::Outcome.new(true))
+      persistence.write(key, value, env)
+      persistence.write(key2, value, env)
+      persistence.write_outcome(name, Listerine::Outcome.new(true), env)
       persistence.destroy
-      persistence.exists?(key).should be false
-      persistence.exists?(key2).should be false
-      persistence.outcomes(name).length.should == 0
+      persistence.exists?(key, env).should be false
+      persistence.exists?(key2, env).should be false
+      persistence.outcomes(name, env).length.should == 0
+    end
+  end
+
+  context "#monitors" do
+    it "returns the list of monitor names that have been run" do
+      Listerine::Monitor.new do
+        name "foo"
+        assert {true}
+      end
+
+      Listerine::Monitor.new do
+        name "bar"
+        assert {true}
+      end
+
+      Listerine::Runner.instance.run
+
+      persistence.monitors.length.should == 2
+      persistence.monitors.should include("foo")
+      persistence.monitors.should include("bar")
+    end
+  end
+
+  context "#environments" do
+    it "returns a list of environments for a given monitor" do
+      Listerine::Monitor.new do
+        name "foo"
+        environments :staging, :production
+        assert {true}
+      end
+
+      Listerine::Monitor.new do
+        name "bar"
+        assert {true}
+      end
+
+      Listerine::Runner.instance.run
+
+      persistence.environments("foo").length.should == 2
+      persistence.environments("foo").should include("production")
+      persistence.environments("foo").should include("staging")
+      persistence.environments("bar").length.should == 1
+      persistence.environments("bar").should include("default")
     end
   end
 end
