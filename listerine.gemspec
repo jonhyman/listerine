@@ -1,11 +1,13 @@
-require "lib/listerine/version"
+lib = File.expand_path('../lib/', __FILE__)
+$:.unshift lib unless $:.include?(lib)
+require "listerine/version"
 
 Gem::Specification.new do |s|
-  s.name        = 'Listerine'
+  s.name        = 'listerine'
   s.version     = Listerine::VERSION
   s.date        = '2012-01-06'
-  s.summary     = "A simple monitoring framework."
-  s.description = "A simple monitoring framework"
+  s.summary     = "A simple functional monitoring framework."
+  s.description = "A simple functional monitoring framework"
   s.authors     = "Jon Hyman"
   s.email       = "jon@appboy.com"
   s.files        = Dir.glob("lib/**/*") + %w(LICENSE README.md Rakefile)
