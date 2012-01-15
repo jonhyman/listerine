@@ -5,6 +5,7 @@ module Listerine
       METADATA_TABLE_NAME = "functional_monitors"
       RUN_HISTORY_TABLE_NAME = "run_history"
       DISABLED_MONITOR_TABLE_NAME = "disabled_monitors"
+      MONITOR_INFO_TABLE_NAME = "monitor_info"
       DEFAULT_DB_PATH = "#{ENV['HOME']}/listerine-default.db"
       DEFAULT_ENV_NAME = "default"
 
@@ -25,11 +26,25 @@ module Listerine
 
       # Destroys the database information and recreates the table structures
       def destroy
-        [METADATA_TABLE_NAME, RUN_HISTORY_TABLE_NAME, DISABLED_MONITOR_TABLE_NAME].each do |table|
+        [METADATA_TABLE_NAME, RUN_HISTORY_TABLE_NAME,
+         DISABLED_MONITOR_TABLE_NAME, MONITOR_INFO_TABLE_NAME].each do |table|
           @db.execute("DROP TABLE IF EXISTS #{table}")
         end
 
         create()
+      end
+
+      # Saves settings for a monitor
+      def save_settings(monitor)
+        @db.execute("DELETE FROM #{MONITOR_INFO_TABLE_NAME} WHERE name=?", monitor.name)
+        description = monitor.description || ""
+        @db.execute("INSERT INTO #{MONITOR_INFO_TABLE_NAME} (name, description) VALUES (?, ?)", monitor.name, description)
+      end
+
+      # Gets the settings for a monitor name
+      def get_settings(name)
+        result = @db.execute("SELECT * FROM #{MONITOR_INFO_TABLE_NAME} WHERE name=?", name)[0]
+        result.nil? ? {} : {:name => result[0], :description => result[1]}
       end
 
       # Ensures that we have the appropriate tables for storing monitor data
@@ -46,6 +61,11 @@ module Listerine
 
         if @db.table_info(DISABLED_MONITOR_TABLE_NAME).empty?
           stmt = "CREATE TABLE #{DISABLED_MONITOR_TABLE_NAME} (name VARCHAR(1024), env VARCHAR(255))"
+          @db.execute(stmt)
+        end
+
+        if @db.table_info(MONITOR_INFO_TABLE_NAME).empty?
+          stmt = "CREATE TABLE #{MONITOR_INFO_TABLE_NAME} (name VARCHAR(1024), description VARCHAR(8192))"
           @db.execute(stmt)
         end
       end

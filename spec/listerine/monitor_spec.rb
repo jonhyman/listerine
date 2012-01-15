@@ -32,6 +32,17 @@ describe Listerine::Monitor do
         end
       }.to raise_error(ArgumentError)
     end
+
+    it "has its settings persisted" do
+      persistence = Listerine::Persistence::Sqlite.new
+      persistence.get_settings("My monitor").should == {}
+      Listerine::Monitor.new do
+        name "My monitor"
+        assert {true}
+        description "My description"
+      end
+      persistence.get_settings("My monitor").should == {:name => "My monitor", :description => "My description"}
+    end
   end
 
   context "#configure" do

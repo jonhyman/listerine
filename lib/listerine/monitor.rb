@@ -8,11 +8,16 @@ module Listerine
 
     def initialize(&block)
       instance_eval(&block)
+
       # Name and assert fields are required for all monitors
       assert_field(:name)
       assert_field(:assert)
 
+      # Add the monitor to the runner after it has been instantiated
       Listerine::Runner.instance.add_monitor(self)
+
+      # Save the settings associated with this monitor to the persistence layer
+      persistence().save_settings(self)
     end
 
     # Runs the monitor defined in the #assert call and returns a Listerine::Outcome.
@@ -71,33 +76,30 @@ module Listerine
       read(failure_count_key()).to_i || 0
     end
 
-    def failure_count_key
-      "#{persistence_key()}_failures"
-    end
-
     # Allows you to disable a monitor
     def disable(environment = current_environment)
-      self.persistence.disable(self.name, environment)
+      persistence().disable(self.name, environment)
     end
 
     # Re enables a monitor
     def enable(environment = current_environment)
-      self.persistence.enable(self.name, environment)
+      persistence().enable(self.name, environment)
     end
 
     def write(key, value, environment = current_environment)
-      self.persistence.write(key, value, environment)
+      persistence().write(key, value, environment)
     end
 
     def read(key, environment = current_environment)
-      self.persistence.read(key, environment)
+      persistence().read(key, environment)
     end
 
     # Returns true if a monitor is disabled
     def disabled?(environment = current_environment)
-      self.persistence.disabled?(self.name, environment)
+      persistence().disabled?(self.name, environment)
     end
 
+    # Notifies the recipient for this monitor's criticality level that the monitor has failed.
     def notify
       recipient = Listerine::Options.instance.recipient(level())
       if recipient
@@ -110,10 +112,11 @@ module Listerine
 
         Listerine::Mailer.mail(recipient, subject, body)
       else
-        Listerine::Logger.print("Not notifying because there is no recipient. Level = #{level}")
+        Listerine::Logger.info("Not notifying because there is no recipient. Level = #{level}")
       end
     end
 
+    # Runs some block of code if the monitor fails
     def if_failing(&block)
       @if_failing = lambda { |failure_count| instance_exec(failure_count, &block) }
     end
@@ -142,12 +145,39 @@ module Listerine
       end
     end
 
+    def persistence_key
+      name
+    end
+
+    def failure_count_key
+      "#{persistence_key()}_failures"
+    end
+
+    def persistence
+      Listerine::Options.instance.persistence_layer
+    end
+
+    def update_stats(outcome, environment = current_environment)
+      persistence().write_outcome(self.name, outcome, environment)
+    end
+
+    ###############
+    # DSL Options #
+    ###############
     def name(*val)
       get_set_property(:name, *val)
     end
 
     def description(*val)
       get_set_property(:description, *val)
+    end
+
+    def notify_every(*val)
+      get_set_property(:notify_every, *val)
+    end
+
+    def notify_after(*val)
+      get_set_property(:notify_after, *val)
     end
 
     def environments(*envs)
@@ -163,22 +193,6 @@ module Listerine
           end
         end
       end
-    end
-
-    def notify_every(*val)
-      get_set_property(:notify_every, *val)
-    end
-
-    def notify_after(*val)
-      get_set_property(:notify_after, *val)
-    end
-
-    def persistence_key
-      name
-    end
-
-    def persistence
-      Listerine::Options.instance.persistence_layer
     end
 
     def level(*args)
@@ -209,10 +223,6 @@ module Listerine
       end
     end
 
-    def update_stats(outcome, environment = current_environment)
-      self.persistence.write_outcome(self.name, outcome, environment)
-    end
-
     protected
     # Sets a +property+ if provided as a second argument. Otherwise, it returns the value of +property+, which defaults
     # to the value set in Listerine::Options
@@ -241,6 +251,5 @@ module Listerine
         raise ArgumentError.new("#{field} is required for all monitors.")
       end
     end
-
   end
 end

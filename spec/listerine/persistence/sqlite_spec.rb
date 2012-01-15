@@ -180,4 +180,34 @@ describe Listerine::Persistence::Sqlite do
       persistence.environments("bar").should include("default")
     end
   end
+
+  context "#save_settings" do
+    it "saves the name and description to the database" do
+      m = Listerine::Monitor.new do
+        name "My new monitor"
+        assert {true}
+        description "This is my description"
+      end
+
+      persistence.save_settings(m)
+      persistence.get_settings(m.name).should == {:name => "My new monitor", :description => "This is my description"}
+    end
+  end
+
+  context "#get_settings" do
+    it "returns the name and description of a monitor" do
+      m = Listerine::Monitor.new do
+        name "My new monitor"
+        assert {true}
+        description "This is my description"
+      end
+
+      persistence.save_settings(m)
+      persistence.get_settings(m.name).should == {:name => "My new monitor", :description => "This is my description"}
+    end
+
+    it "returns an empty hash if the monitor name doesn't exist." do
+      persistence.get_settings("My monitor").should == {}
+    end
+  end
 end

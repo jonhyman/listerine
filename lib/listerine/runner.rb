@@ -50,7 +50,7 @@ module Listerine
       else
         result = Listerine::Logger.error("UNKNOWN RETURN VALUE: #{outcome.result}", false)
       end
-      Listerine::Logger.print("#{msg}\t#{result}")
+      Listerine::Logger.info("#{msg}\t#{result}")
     end
   end
 end

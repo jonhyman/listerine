@@ -7,7 +7,7 @@ module Listerine
     YELLOW = 33
 
     class << self
-      def print(text)
+      def info(text)
         display(text)
       end
 

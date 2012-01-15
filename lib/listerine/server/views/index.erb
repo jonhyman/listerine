@@ -5,6 +5,12 @@
       <div class="name">
         <%= name %>
       </div>
+      <% settings = @persistence.get_settings(name) %>
+      <% if settings[:description] %>
+        <div class="description">
+          <%= settings[:description] %>
+        </div>
+      <% end %>
       <% @persistence.environments(name).each do |env| %>
         <% outcomes = @persistence.outcomes(name, env, :sort => "time ASC") %>
         <% radio_id = "#{name_to_id(name)}_#{env}" %>
