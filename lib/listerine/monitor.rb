@@ -44,7 +44,7 @@ module Listerine
         track_failures(outcome) do |failure_count|
           # Notify after notify_after failures, but then only notify every notify_every failures.
           if failure_count >= self.notify_after &&
-              (failure_count == self.notify_after || ((self.failure_count + self.notify_after) % self.notify_every == 0))
+              (failure_count == self.notify_after || ((failure_count + self.notify_after) % self.notify_every == 0))
             notify
           end
 

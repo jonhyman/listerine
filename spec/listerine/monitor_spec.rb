@@ -119,6 +119,48 @@ describe Listerine::Monitor do
       end
       m.notify_after.should == 2
     end
+
+    it "sets the threshold of failures after which a notification is sent" do
+      begin
+        Listerine::Monitor.configure do
+          notify "jon@example.com"
+        end
+
+        m = Listerine::Monitor.new do
+          name "My monitor"
+          notify_after 3
+          assert {false}
+        end
+
+        Listerine::Mailer.should_receive(:mail).once
+        3.times { m.run }
+      ensure
+        # Ensure that we clear out the recipients since Listerine::Options is a singleton.
+        Listerine::Options.instance.recipients.clear
+      end
+    end
+
+    # This is split out into another test because the spec can't set the expectation that it will receive the
+    # call on the xth time.
+    it "sets the threshold of failures before which no notifications are sent" do
+      begin
+        Listerine::Monitor.configure do
+          notify "jon@example.com"
+        end
+
+        m = Listerine::Monitor.new do
+          name "My monitor"
+          notify_after 3
+          assert {false}
+        end
+
+        Listerine::Mailer.should_not_receive(:mail)
+        2.times { m.run }
+      ensure
+        # Ensure that we clear out the recipients since Listerine::Options is a singleton.
+        Listerine::Options.instance.recipients.clear
+      end
+    end
   end
 
   context "#notify_every" do
@@ -137,6 +179,27 @@ describe Listerine::Monitor do
         assert {true}
       end
       m.notify_every.should == 2
+    end
+
+    it "sets the threshold of failures after the first one which notifications are sent" do
+      begin
+        Listerine::Monitor.configure do
+          notify "jon@example.com"
+        end
+
+        m = Listerine::Monitor.new do
+          name "My monitor"
+          notify_after 3
+          notify_every 2
+          assert {false}
+        end
+
+        Listerine::Mailer.should_receive(:mail).exactly(3).times
+        7.times { m.run }
+      ensure
+        # Ensure that we clear out the recipients since Listerine::Options is a singleton.
+        Listerine::Options.instance.recipients.clear
+      end
     end
   end
 
