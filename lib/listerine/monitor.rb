@@ -26,7 +26,7 @@ module Listerine
       @current_environment = opts[:environment]
 
       if self.disabled?
-        Listerine::Outcome.new(Listerine::Outcome::DISABLED)
+        outcome = Listerine::Outcome.new(Listerine::Outcome::DISABLED)
       else
         begin
           result = @assert.call
@@ -41,8 +41,6 @@ module Listerine
         end
 
         outcome = Listerine::Outcome.new(result)
-        update_stats(outcome)
-
         track_failures(outcome) do |failure_count|
           # Notify after notify_after failures, but then only notify every notify_every failures.
           if failure_count >= self.notify_after &&
@@ -54,9 +52,9 @@ module Listerine
             @if_failing.call(failure_count)
           end
         end
-
-        outcome
       end
+      update_stats(outcome)
+      outcome
     end
 
     def track_failures(outcome)
