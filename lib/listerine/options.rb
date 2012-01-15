@@ -9,6 +9,7 @@ module Listerine
 
     def initialize
       @levels = []
+      @recipients = []
 
       # Set the default persistence to Sqlite
       persistence(:sqlite)
@@ -50,10 +51,9 @@ module Listerine
     end
 
     def recipient(level)
-      return nil if @recipients.nil?
+      return nil if @recipients.empty?
 
       if level.nil?
-        return nil if @recipients.empty?
         recip = @recipients.first
       else
         # For default levels, no level should be set with the recipient.

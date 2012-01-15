@@ -25,13 +25,16 @@ module Listerine
       opts = args.extract_options!
       @current_environment = opts[:environment]
 
+      append_to_notify = nil
       if self.disabled?
         outcome = Listerine::Outcome.new(Listerine::Outcome::DISABLED)
       else
         begin
           result = @assert.call
         rescue Exception => e
-          Listerine::Logger.error("Uncaught exception running #{self.name}: #{e}")
+          error_string = "Uncaught exception running #{self.name}: #{e}. Backtrace: #{e.backtrace}"
+          Listerine::Logger.error(error_string)
+          append_to_notify = error_string
           result = false
         end
 
@@ -45,7 +48,7 @@ module Listerine
           # Notify after notify_after failures, but then only notify every notify_every failures.
           if failure_count >= self.notify_after &&
               (failure_count == self.notify_after || ((failure_count + self.notify_after) % self.notify_every == 0))
-            notify
+            notify(append_to_notify)
           end
 
           if @if_failing.kind_of?(Proc)
@@ -98,11 +101,11 @@ module Listerine
     end
 
     # Notifies the recipient for this monitor's criticality level that the monitor has failed.
-    def notify
+    def notify(append_to_body = "")
       recipient = Listerine::Options.instance.recipient(level())
       if recipient
         subject = "Monitor failure: #{name}"
-        body = "Monitor failure: #{name}. Failure count: #{failure_count}"
+        body = "Monitor failure: #{name}. Failure count: #{failure_count}\n#{append_to_body}"
 
         if self.current_environment
           subject = "[#{self.current_environment.upcase}] #{subject}"

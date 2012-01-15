@@ -1,5 +1,11 @@
 require 'spec_helper'
 describe Listerine::Monitor do
+  after :each do
+    # Ensure that we clear out the recipients since Listerine::Options is a singleton.
+    Listerine::Options.instance.recipients.clear
+    Listerine::Options.instance.levels.clear
+  end
+
   context "construction" do
     it "requires the name to be defined" do
       expect {
@@ -121,45 +127,35 @@ describe Listerine::Monitor do
     end
 
     it "sets the threshold of failures after which a notification is sent" do
-      begin
-        Listerine::Monitor.configure do
-          notify "jon@example.com"
-        end
-
-        m = Listerine::Monitor.new do
-          name "My monitor"
-          notify_after 3
-          assert {false}
-        end
-
-        Listerine::Mailer.should_receive(:mail).once
-        3.times { m.run }
-      ensure
-        # Ensure that we clear out the recipients since Listerine::Options is a singleton.
-        Listerine::Options.instance.recipients.clear
+      Listerine::Monitor.configure do
+        notify "jon@example.com"
       end
+
+      m = Listerine::Monitor.new do
+        name "My monitor"
+        notify_after 3
+        assert {false}
+      end
+
+      Listerine::Mailer.should_receive(:mail).once
+      3.times { m.run }
     end
 
     # This is split out into another test because the spec can't set the expectation that it will receive the
     # call on the xth time.
     it "sets the threshold of failures before which no notifications are sent" do
-      begin
-        Listerine::Monitor.configure do
-          notify "jon@example.com"
-        end
-
-        m = Listerine::Monitor.new do
-          name "My monitor"
-          notify_after 3
-          assert {false}
-        end
-
-        Listerine::Mailer.should_not_receive(:mail)
-        2.times { m.run }
-      ensure
-        # Ensure that we clear out the recipients since Listerine::Options is a singleton.
-        Listerine::Options.instance.recipients.clear
+      Listerine::Monitor.configure do
+        notify "jon@example.com"
       end
+
+      m = Listerine::Monitor.new do
+        name "My monitor"
+        notify_after 3
+        assert {false}
+      end
+
+      Listerine::Mailer.should_not_receive(:mail)
+      2.times { m.run }
     end
   end
 
@@ -182,24 +178,19 @@ describe Listerine::Monitor do
     end
 
     it "sets the threshold of failures after the first one which notifications are sent" do
-      begin
-        Listerine::Monitor.configure do
-          notify "jon@example.com"
-        end
-
-        m = Listerine::Monitor.new do
-          name "My monitor"
-          notify_after 3
-          notify_every 2
-          assert {false}
-        end
-
-        Listerine::Mailer.should_receive(:mail).exactly(3).times
-        7.times { m.run }
-      ensure
-        # Ensure that we clear out the recipients since Listerine::Options is a singleton.
-        Listerine::Options.instance.recipients.clear
+      Listerine::Monitor.configure do
+        notify "jon@example.com"
       end
+
+      m = Listerine::Monitor.new do
+        name "My monitor"
+        notify_after 3
+        notify_every 2
+        assert {false}
+      end
+
+      Listerine::Mailer.should_receive(:mail).exactly(3).times
+      7.times { m.run }
     end
   end
 
@@ -231,66 +222,51 @@ describe Listerine::Monitor do
 
   context "#notify" do
     it "emails the recipient if no levels are set" do
-      begin
-        Listerine::Monitor.configure do
-          notify "jon@example.com"
-        end
-
-        m = Listerine::Monitor.new do
-          name "My monitor"
-          assert {true}
-        end
-        Listerine::Mailer.should_receive(:mail).with("jon@example.com", anything, anything)
-        m.notify
-      ensure
-        # Ensure that we clear out the recipients since Listerine::Options is a singleton.
-        Listerine::Options.instance.recipients.clear
+      Listerine::Monitor.configure do
+        notify "jon@example.com"
       end
+
+      m = Listerine::Monitor.new do
+        name "My monitor"
+        assert {true}
+      end
+      Listerine::Mailer.should_receive(:mail).with("jon@example.com", anything, anything)
+      m.notify
     end
 
     it "emails the recipient for the level" do
-      begin
-        Listerine::Monitor.configure do
-          notify "crit@example.com", :when => :critical
-          notify "warn@example.com", :when => :warning
-        end
-
-        m = Listerine::Monitor.new do
-          name "My monitor"
-          assert {true}
-        end
-        Listerine::Mailer.should_receive(:mail).with("warn@example.com", anything, anything).once
-        # Set the current level
-        m.stub(:level).and_return(:warning)
-        m.notify
-
-        Listerine::Mailer.should_receive(:mail).with("crit@example.com", anything, anything).once
-        # Set the current level
-        m.stub(:level).and_return(:critical)
-        m.notify
-      ensure
-        # Ensure that we clear out the recipients since Listerine::Options is a singleton.
-        Listerine::Options.instance.recipients.clear
+      Listerine::Monitor.configure do
+        notify "crit@example.com", :when => :critical
+        notify "warn@example.com", :when => :warning
       end
+
+      m = Listerine::Monitor.new do
+        name "My monitor"
+        assert {true}
+      end
+      Listerine::Mailer.should_receive(:mail).with("warn@example.com", anything, anything).once
+      # Set the current level
+      m.stub(:level).and_return(:warning)
+      m.notify
+
+      Listerine::Mailer.should_receive(:mail).with("crit@example.com", anything, anything).once
+      # Set the current level
+      m.stub(:level).and_return(:critical)
+      m.notify
     end
 
     it "does not email anyone if the recipient for that level is not set" do
-      begin
-        Listerine::Monitor.configure do
-          notify "jon@example.com"
-        end
-
-        m = Listerine::Monitor.new do
-          name "My monitor"
-          level :critical
-          assert {true}
-        end
-        Listerine::Mailer.should_not_receive(:mail)
-        m.notify
-      ensure
-        # Ensure that we clear out the recipients since Listerine::Options is a singleton.
-        Listerine::Options.instance.recipients.clear
+      Listerine::Monitor.configure do
+        notify "jon@example.com"
       end
+
+      m = Listerine::Monitor.new do
+        name "My monitor"
+        level :critical
+        assert {true}
+      end
+      Listerine::Mailer.should_not_receive(:mail)
+      m.notify
     end
   end
 
@@ -321,27 +297,22 @@ describe Listerine::Monitor do
     end
 
     it "can be set globally" do
-      begin
-        Listerine::Monitor.configure do
-          level :critical, :in => :production
-          level :warning, :in => :staging
-        end
-
-        m = Listerine::Monitor.new do
-          name "My monitor"
-          environments :staging, :production
-          assert {true}
-        end
-
-        # Stub the current environment
-        m.stub(:current_environment).and_return(:production)
-        m.level.should == :critical
-        m.stub(:current_environment).and_return(:staging)
-        m.level.should == :warning
-      ensure
-        # Ensure that we clear out the recipients since Listerine::Options is a singleton.
-        Listerine::Options.instance.levels.clear
+      Listerine::Monitor.configure do
+        level :critical, :in => :production
+        level :warning, :in => :staging
       end
+
+      m = Listerine::Monitor.new do
+        name "My monitor"
+        environments :staging, :production
+        assert {true}
+      end
+
+      # Stub the current environment
+      m.stub(:current_environment).and_return(:production)
+      m.level.should == :critical
+      m.stub(:current_environment).and_return(:staging)
+      m.level.should == :warning
     end
   end
 
@@ -433,47 +404,37 @@ describe Listerine::Monitor do
     end
 
     it "notifies the recipient if the monitor fails" do
-      begin
-        Listerine::Monitor.configure do
-          notify "jon@example.com"
-        end
-
-        m = Listerine::Monitor.new do
-          name "My monitor"
-          assert do
-            false
-          end
-        end
-
-        Listerine::Mailer.should_receive(:mail).with("jon@example.com", anything, anything)
-
-        m.run
-      ensure
-        # Ensure that we clear out the recipients since Listerine::Options is a singleton.
-        Listerine::Options.instance.recipients.clear
+      Listerine::Monitor.configure do
+        notify "jon@example.com"
       end
+
+      m = Listerine::Monitor.new do
+        name "My monitor"
+        assert do
+          false
+        end
+      end
+
+      Listerine::Mailer.should_receive(:mail).with("jon@example.com", anything, anything)
+
+      m.run
     end
 
     it "does not notify the recipient if the monitor succeeds" do
-      begin
-        Listerine::Monitor.configure do
-          notify "jon@example.com"
-        end
-
-        m = Listerine::Monitor.new do
-          name "My monitor"
-          assert do
-            true
-          end
-        end
-
-        Listerine::Mailer.should_not_receive(:mail)
-
-        m.run
-      ensure
-        # Ensure that we clear out the recipients since Listerine::Options is a singleton.
-        Listerine::Options.instance.recipients.clear
+      Listerine::Monitor.configure do
+        notify "jon@example.com"
       end
+
+      m = Listerine::Monitor.new do
+        name "My monitor"
+        assert do
+          true
+        end
+      end
+
+      Listerine::Mailer.should_not_receive(:mail)
+
+      m.run
     end
 
     it "returns a failed outcome if the monitor throws an exception" do
@@ -488,6 +449,22 @@ describe Listerine::Monitor do
       outcome.result.should == Listerine::Outcome.new(false).result
     end
 
+    it "contains the exception text and backtrace in the notification sent on a monitor failure" do
+      Listerine::Monitor.configure do
+        notify "jon@example.com"
+      end
+
+      m = Listerine::Monitor.new do
+        name "My monitor"
+        assert do
+          raise StandardError.new("Exception!")
+        end
+      end
+
+      StandardError.any_instance.stub(:backtrace).and_return("backtrace")
+      Listerine::Mailer.should_receive(:mail).with("jon@example.com", anything, "Monitor failure: My monitor. Failure count: 0\nUncaught exception running My monitor: Exception!. Backtrace: backtrace")
+      m.run
+    end
   end
 
   context "#disable" do
