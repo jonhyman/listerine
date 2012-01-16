@@ -1,16 +1,14 @@
 Listerine
 =========
 
-Listerine is a simple functional monitoring framework that allows you to quickly create script monitors which alert you
-when they fail.
+Listerine is a simple functional monitoring framework that enables you to quickly create customizable functional monitors with full alerting capability.
 
 Listerine is not a process monitoring framework like [God](http://godrb.com) but instead intended for functional test
 application monitoring.
 
-This project was largely created as a self-service for Appboy because other monitoring solutions such as CloudKick are
-too expensive for what amounts to a script running on a cron schedule.
+This project was originally created as a self-service for [Appboy](http://www.appboy.com) as a replacement to more expensive and less featured services such as CloudKick.
 
-You could use Listerine to:
+Listerines enables you to monitor all levels of your web applications and services. Some common examples include:
 
 * Ensure that your caching layer is functioning properly
 * Make sure that you have X available Resque workers
@@ -20,13 +18,13 @@ You could use Listerine to:
 Installation
 ------------
 
-Install the gem
+1. Install the gem
 
     gem install listerine
 
-Write a Listerine monitor script. See examples below.
+2. Write a Listerine monitor script. See examples below.
 
-Setup a cron job to run the monitor script on some regular interval. For example:
+3. Setup a cron job to run the monitor script on some regular interval. For example:
 
     */2 * * * * /path/to/monitor/file.rb
 
@@ -34,11 +32,10 @@ Setup a cron job to run the monitor script on some regular interval. For example
 Overview
 --------
 
-Listerine allows you to define simple script monitors that contain an <em>assertion</em>, which when true means that
-the monitor has succeeded and when false means that the monitor has failed.
+Listerine allows you to define simple script monitors that contain an <em>assertion</em>. When the assertion is true, the monitor has succeeded. When the assertion becomes false the monitor has failed and will act accordingly.
 
-All monitors must contain a `name` and an `assert` block. All unhandled exceptions will be caught, treated as a
-failure, and the exception text and backtrace will be sent in the notification. Here's an example:
+All monitors must contain both `name` and `assert` blocks. Unhandled exceptions are caught and treated as
+failures, with the exception text and backtrace included in the notification. Here's an example:
 
 ```ruby
 require 'mysql2'
