@@ -4,19 +4,29 @@ Listerine
 Listerine is a simple functional monitoring framework that allows you to quickly create script monitors which alert you
 when they fail.
 
-Listerine is not a process monitoring framework like [God](http://godrb.com).
+Listerine is not a process monitoring framework like [God](http://godrb.com) but instead intended for functional test
+application monitoring.
 
 This project was largely created as a self-service for Appboy because other monitoring solutions such as CloudKick are
 too expensive for what amounts to a script running on a cron schedule.
+
+You could use Listerine to:
+
+* Ensure that your caching layer is functioning properly
+* Make sure that you have X available Resque workers
+* Check that your hosted database is online (e.g., if you use MongoHQ or RedisToGo)
+* POST to your API and verify return values
 
 Installation
 ------------
 
 1. Install the gem
+
     gem install listerine
 
 2. Write a Listerine monitor script
 3. Setup a cron job to run the monitor script on some regular interval
+
     # Run the monitor script every 2 minutes
     $ crontab -e
     */2 * * * * /path/to/monitor/file.rb
@@ -58,8 +68,8 @@ Add this code before the `Listerine::Runner` to configure all the monitors to no
 
 ```ruby
 Listerine::Monitor.configure do
-  from "alerts@appboy.com" # the email address from which the alerts will be sent
-  notify "jon@appboy.com"
+  from "alerts@example.com" # the email address from which the alerts will be sent
+  notify "jon@example.com"
 end
 ```
 
@@ -71,9 +81,10 @@ The same monitor can be run in multiple environments. To do so, specify a list o
 monitor. In your `assert` block, you will have access to a method `current_environment` which indicates the environment
 in which the monitor is running.
 
-When no environment is specified, the monitor is run in the :default environment.
+When no environment is specified, the monitor is run in the `:default` environment.
 
 ```ruby
+require 'resque'
 Listerine::Monitor.new do
   name "Resque workers"
   description "This monitor makes sure that there is at least 1 Resque worker."
@@ -94,16 +105,16 @@ end
 Listerine::Runner.instance.run
 ```
 
-When using multiple environments, you can also define different recipients for the failure notification. To use this,
-set a criticality `level` on the monitor and then when defining recipients in the `configure` block, indicate which
-recipients are for which criticality level. For example:
+When using multiple environments, you can also define different recipients for the failure notification. Set a
+criticality `level` on the monitor, and when defining recipients in the `configure` block, indicate which recipients
+are for which criticality level. For example:
 
 ```ruby
 Listerine::Monitor.configure do
-  from "alerts@appboy.com"
-  # When an alert fails that is of criticality level critical, notify critical@appboy.com
-  notify "critical@appboy.com", :when => :critical
-  notify "warn@appboy.com", :when => :not_critical
+  from "alerts@example.com"
+  # When an alert fails that is of criticality level critical, notify critical@example.com
+  notify "critical@example.com", :when => :critical
+  notify "warn@example.com", :when => :not_critical
 end
 
 Listerine::Monitor.new do
@@ -182,11 +193,10 @@ Listerine::Monitor.new do
     ...
   end
 
-  # Reboot the cache instance if there are 3 consecutive failures
+  # Reboot the cache instance if there are 5 consecutive failures
   if_failing do |failure_count|
-    if failure_count == 3
-      #
-      Listerine::Mailer.mail("jon@appboy.com", "Rebooting the cache", "Cache failed 3 times, rebooting")
+    if failure_count == 5
+      Listerine::Mailer.mail("jon@example.com", "Rebooting the cache", "Cache failed 5 times, rebooting")
       system("ec2-reboot-instances i-1234567")
     end
   end
@@ -197,9 +207,10 @@ Global options
 --------------
 
 You can set the follow options globally in the `configure` block to avoid having to redefine on each monitor:
-* level
-* notify_after
-* notify_every
+
+* `level`
+* `notify_after`
+* `notify_every`
 
 
 Helper functions
@@ -217,21 +228,12 @@ Listerine::Monitor.new do
 end
 ```
 
-Monitor use cases
-----------------
-
-Here are a few script monitors that you might want to make.
-* Ensuring that your cache server is functioning
-* Making sure that you have X available Resque workers
-* Checking that your hosted database is online (e.g., if you use MongoHQ)
-* POSTing to your API and verifying return values
-
 Notes
 -----
 The `name` field must be unique across all defined monitors.
 
 Right now the persistence for these monitors is stored in a Sqlite3 database which is stored by default at
-ENV['HOME']/listerine-default.db. You can customize the path to this database in the `configure` block:
+ENV["HOME"]/listerine-default.db. You can customize the path to this database in the `configure` block:
 
 ```ruby
 Listerine::Monitor.configure do
