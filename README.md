@@ -25,10 +25,8 @@ Installation
     gem install listerine
 
 2. Write a Listerine monitor script
-3. Setup a cron job to run the monitor script on some regular interval
+3. Setup a cron job to run the monitor script on some regular interval. For example:
 
-    # Run the monitor script every 2 minutes
-    $ crontab -e
     */2 * * * * /path/to/monitor/file.rb
 
 
@@ -244,8 +242,10 @@ end
 
 Listerine Server
 ================
-Listerine comes with a Sinatra-based front end for checking the latest status of your monitors and enabling/disabling
+Listerine comes with a Sinatra-based front end, `Listerine::Server`, for checking the latest status of your monitors and enabling/disabling
 them on a per-environment basis.
+
+Check `examples/config.ru` for a functional example (including HTTP basic auth).
 
 Installation
 ------------
@@ -254,6 +254,7 @@ Installation
 See Phusion's guide:
 
 Apache: <http://www.modrails.com/documentation/Users%20guide%20Apache.html#_deploying_a_rack_based_ruby_application>
+
 Nginx: <http://www.modrails.com/documentation/Users%20guide%20Nginx.html#deploying_a_rack_app>
 
 ### Rack::URLMap
