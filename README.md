@@ -20,12 +20,13 @@ You could use Listerine to:
 Installation
 ------------
 
-1. Install the gem
+Install the gem
 
     gem install listerine
 
-2. Write a Listerine monitor script
-3. Setup a cron job to run the monitor script on some regular interval. For example:
+Write a Listerine monitor script. See examples below.
+
+Setup a cron job to run the monitor script on some regular interval. For example:
 
     */2 * * * * /path/to/monitor/file.rb
 
