@@ -51,16 +51,23 @@ module Listerine
     end
 
     def recipient(level)
+      default_level = :default
       return nil if @recipients.empty?
 
       if level.nil?
         recip = @recipients.first
       else
         # For default levels, no level should be set with the recipient.
-        if level == :default
+        if level == default_level
           level = nil
         end
         recip = @recipients.select {|r| r[:level] == level}
+
+        # If we don't have a recipient, return the recipient for default level
+        if recip.empty? && level != default_level
+          return recipient(default_level)
+        end
+
         return nil if recip.empty?
         recip = recip.first
       end
@@ -83,7 +90,7 @@ module Listerine
       end
     end
 
-    def level(*args)
+    def is(*args)
       opts = args.extract_options!
       @levels ||= []
 

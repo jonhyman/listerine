@@ -18,15 +18,11 @@ Listerines enables you to monitor all levels of your web applications and servic
 Installation
 ------------
 
-1. Install the gem
-
-    gem install listerine
+1. Install the gem: `gem install listerine`
 
 2. Write a Listerine monitor script. See examples below.
 
-3. Setup a cron job to run the monitor script on some regular interval. For example:
-
-    */2 * * * * /path/to/monitor/file.rb
+3. Setup a cron job to run the monitor script on some regular interval. For example: `*/2 * * * * /path/to/monitor/file.rb`
 
 
 Overview
@@ -39,6 +35,15 @@ failures, with the exception text and backtrace included in the notification. He
 
 ```ruby
 require 'mysql2'
+
+# Global configuration settings
+Listerine::Monitor.configure do
+  # Configure the email address from which the alerts will be sent
+  from "alerts@example.com"
+
+  # Notify jon@example.com on all failures
+  notify "jon@example.com"
+end
 
 # Define the monitor
 Listerine::Monitor.new do
@@ -57,18 +62,7 @@ end
 Listerine::Runner.instance.run
 ```
 
-This seems all well and good, but how does the monitor know who to notify if there is a failure? For that, we need to
-configure the monitors.
-
-Add this code before the `Listerine::Runner` to configure all the monitors to notify some email address on failure.
-
-```ruby
-Listerine::Monitor.configure do
-  from "alerts@example.com" # the email address from which the alerts will be sent
-  notify "jon@example.com"
-end
-```
-
+To
 
 Multiple environments
 ---------------------
@@ -102,15 +96,20 @@ Listerine::Runner.instance.run
 ```
 
 When using multiple environments, you can also define different recipients for the failure notification. Set a
-criticality `level` on the monitor, and when defining recipients in the `configure` block, indicate which recipients
-are for which criticality level. For example:
+criticality level on the monitor using `is`, and when defining recipients in the `configure` block, indicate which
+recipients are for which criticality level. Criticality levels are arbitrary symbols. For example:
 
 ```ruby
 Listerine::Monitor.configure do
   from "alerts@example.com"
+  # This is the default recipient
+  notify "default@example.com"
+
   # When an alert fails that is of criticality level critical, notify critical@example.com
   notify "critical@example.com", :when => :critical
-  notify "warn@example.com", :when => :not_critical
+
+  # When a
+  notify "warn@example.com", :when => :foobar
 end
 
 Listerine::Monitor.new do
@@ -118,8 +117,9 @@ Listerine::Monitor.new do
   description "This monitor makes sure that there is at least 1 Resque worker."
   environments :staging, :production
   # This monitor is critical when running in the production environment
-  level :critical, :in => :production
-  level :not_critical, :in => :staging
+  is :critical, :in => :production
+  # The criticality levels can be anything you want. It defaults to :default.
+  is :foobar, :in => :staging
   assert do
     # Setup a different connection based on the current environment
     if current_environment == :staging
@@ -137,7 +137,7 @@ end
 Listerine::Runner.instance.run
 ```
 
-If a recipient is not declared for a criticality level, no notification will be sent.
+If a recipient is not declared for a criticality level, Listerine will use the default recipient.
 
 Criticality levels can be set globally in the `configure` block so you can make all production monitors critical, etc.
 
@@ -218,7 +218,7 @@ creates an `assert` block to ensure that a website is returning a 200 status cod
 ```ruby
 Listerine::Monitor.new do
   name "Site online"
-  level :critical
+  is :critical
   description "Makes sure that the site is online."
   assert_online "http://blog.example.com"
 end

@@ -196,7 +196,7 @@ module Listerine
       end
     end
 
-    def level(*args)
+    def is(*args)
       opts = args.extract_options!
       @levels ||= Listerine::Options.instance.levels
 
@@ -223,6 +223,8 @@ module Listerine
         end
       end
     end
+
+    alias :level :is
 
     protected
     # Sets a +property+ if provided as a second argument. Otherwise, it returns the value of +property+, which defaults

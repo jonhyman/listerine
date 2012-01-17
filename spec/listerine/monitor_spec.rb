@@ -255,14 +255,9 @@ describe Listerine::Monitor do
       m.notify
     end
 
-    it "does not email anyone if the recipient for that level is not set" do
-      Listerine::Monitor.configure do
-        notify "jon@example.com"
-      end
-
+    it "does not email anyone if there are no recipients" do
       m = Listerine::Monitor.new do
         name "My monitor"
-        level :critical
         assert {true}
       end
       Listerine::Mailer.should_not_receive(:mail)
@@ -274,7 +269,7 @@ describe Listerine::Monitor do
     it "defines a criticality level for a monitor" do
       m = Listerine::Monitor.new do
         name "My monitor"
-        level :critical
+        is :critical
         assert {true}
       end
       m.level.should == :critical
@@ -284,8 +279,8 @@ describe Listerine::Monitor do
       m = Listerine::Monitor.new do
         name "My monitor"
         environments :staging, :production
-        level :critical, :in => :production
-        level :warning, :in => :staging
+        is :critical, :in => :production
+        is :warning, :in => :staging
         assert {true}
       end
 
@@ -298,8 +293,8 @@ describe Listerine::Monitor do
 
     it "can be set globally" do
       Listerine::Monitor.configure do
-        level :critical, :in => :production
-        level :warning, :in => :staging
+        is :critical, :in => :production
+        is :warning, :in => :staging
       end
 
       m = Listerine::Monitor.new do
