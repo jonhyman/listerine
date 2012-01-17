@@ -18,12 +18,7 @@ Listerines enables you to monitor all levels of your web applications and servic
 Installation
 ------------
 
-1. Install the gem: `gem install listerine`
-
-2. Write a Listerine monitor script. See examples below.
-
-3. Setup a cron job to run the monitor script on some regular interval. For example: `*/2 * * * * /path/to/monitor/file.rb`
-
+    gem install listerine
 
 Overview
 --------
@@ -62,7 +57,7 @@ end
 Listerine::Runner.instance.run
 ```
 
-To
+To run this file regularly, schedule a cron job.
 
 Multiple environments
 ---------------------
