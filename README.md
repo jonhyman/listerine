@@ -270,9 +270,9 @@ Listerine::Monitor.configure do
 end
 ```
 
-Other persistence backends can be created by adhering to the interface Listerine::Persistence::PersistenceLayer. Then
-pass in via the `:persistence` option. Listerine will automatically find a class that is the `#capitalize`d version of
-the option, so `:persistence => :mysql` will new up Listerine::Persistence::Mysql.
+Other persistence backends can be created by adhering to the interface `Listerine::Persistence::PersistenceLayer`. Then
+pass your new persistence layer in via the `:persistence` option. Listerine will automatically find a class that is
+the `#capitalize`d version of the option, so `:persistence => :mysql` will new up Listerine::Persistence::Mysql.
 
 Listerine Server
 ================
