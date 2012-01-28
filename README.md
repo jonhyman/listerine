@@ -150,6 +150,7 @@ Note: You don't need to use multiple environments to set criticality levels. The
   notify "alerts-critical@example.com", :when => :critical
  end
 
+ # Emails alerts-critical@example.com when it fails
  Listerine::Monitor.new do
   name "Site online"
   is :critical
@@ -158,6 +159,7 @@ Note: You don't need to use multiple environments to set criticality levels. The
   end
  end
 
+ # Emails alerts-warning@example.com when it fails
  Listerine::Monitor.new do
   name "Internal wiki online"
   assert do
@@ -255,7 +257,7 @@ Listerine::Monitor.new do
 end
 ```
 
-We use CloudFlare, and CloudFlare is somewhat flaky, so you can pass in `:ignore_502 => true` to ignore 502 errors.
+We use [CloudFlare](https://www.cloudflare.com), and CloudFlare is somewhat flaky, so you can pass in `:ignore_502 => true` to ignore 502 errors.
 
 Notes
 -----
@@ -280,6 +282,8 @@ Listerine comes with a Sinatra-based front end, `Listerine::Server`, for checkin
 them on a per-environment basis.
 
 Check `examples/config.ru` for a functional example (including HTTP basic auth).
+
+![Listerine Server](https://raw.github.com/Appboy/listerine/master/examples/images/listerine_server.png)
 
 Installation
 ------------
