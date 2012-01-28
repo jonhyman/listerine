@@ -7,7 +7,7 @@ monitors with full alerting capability.
 Listerine is not a process monitoring framework like [God](http://godrb.com) but instead intended for functional test
 application monitoring.
 
-This project was originally created as a self-service for [Appboy](http://www.appboy.com) as a replacement to more
+This project was originally created as a self-service for [Appboy](http://www.appboy.com) as a replacement for more
 expensive services.
 
 Listerine enables you to monitor all levels of your web applications and services. Some common examples include:
