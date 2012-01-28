@@ -1,13 +1,14 @@
-require_relative "extensions/hash"
-require_relative "extensions/array"
-require_relative "listerine/logger"
-require_relative "listerine/mailer"
-require_relative "listerine/outcome"
-require_relative "listerine/options"
-require_relative "listerine/persistence/persistence_layer"
-require_relative "listerine/persistence/sqlite"
-require_relative "listerine/runner"
-require_relative "listerine/monitor"
+$LOAD_PATH << File.dirname(__FILE__)
+require "extensions/hash"
+require "extensions/array"
+require "listerine/logger"
+require "listerine/mailer"
+require "listerine/outcome"
+require "listerine/options"
+require "listerine/persistence/persistence_layer"
+require "listerine/persistence/sqlite"
+require "listerine/runner"
+require "listerine/monitor"
 require 'pony'
 require 'rest-client'
 require 'time'
