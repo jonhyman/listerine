@@ -205,13 +205,13 @@ module Listerine
 
     def is(*args)
       opts = args.extract_options!
-      @levels ||= Listerine::Options.instance.levels
+      @levels ||= Listerine::Options.instance.levels.dup
 
       if args.empty?
         if @levels.length == 1 && @levels.first[:environment].nil?
           @levels.first[:level]
         else
-          level = @levels.select {|l| l[:environment] == self.current_environment }
+          level = @levels.select {|l| !l[:environment].nil? && l[:environment] == self.current_environment }
           if level.empty?
             Listerine::Options::DEFAULT_LEVEL
           else
@@ -222,11 +222,14 @@ module Listerine
         name = args.first
 
         # If the leveling is set from Listerine::Options, then override it.
-        @levels.delete_if {|k,v| k == :level && v == name}
+        @levels.delete_if {|l| l[:level] == name}
         if opts[:in]
           @levels << {:level => name, :environment => opts[:in]}
         else
           @levels << {:level => name}
+
+          # Delete the default level since a new default was provided
+          @levels.delete_if {|l| l[:level] == Listerine::Options::DEFAULT_LEVEL}
         end
       end
     end

@@ -3,7 +3,7 @@ describe Listerine::Monitor do
   after :each do
     # Ensure that we clear out the recipients since Listerine::Options is a singleton.
     Listerine::Options.instance.recipients.clear
-    Listerine::Options.instance.levels.clear
+    Listerine::Options.instance.levels = [{:level => Listerine::Options::DEFAULT_LEVEL}]
   end
 
   context "construction" do
@@ -262,6 +262,48 @@ describe Listerine::Monitor do
       end
       Listerine::Mailer.should_not_receive(:mail)
       m.notify
+    end
+
+    it "emails the default recipient if criticality level is not defined" do
+      Listerine::Monitor.configure do
+        notify "jon@example.com"
+        notify "critical@example.com", :when => :critical
+      end
+
+      m = Listerine::Monitor.new do
+        name "My monitor"
+        is :critical
+        assert {true}
+      end
+
+      m2 = Listerine::Monitor.new do
+        name "My other monitor"
+        assert {false}
+      end
+
+      Listerine::Mailer.should_receive(:mail).with("jon@example.com", anything, anything)
+      Listerine::Runner.instance.run
+    end
+
+    it "emails the critical recipient if criticality level is set" do
+      Listerine::Monitor.configure do
+        notify "jon@example.com"
+        notify "critical@example.com", :when => :critical
+      end
+
+      m = Listerine::Monitor.new do
+        name "My monitor"
+        is :critical
+        assert {false}
+      end
+
+      m2 = Listerine::Monitor.new do
+        name "My other monitor"
+        assert {true}
+      end
+
+      Listerine::Mailer.should_receive(:mail).with("critical@example.com", anything, anything)
+      Listerine::Runner.instance.run
     end
   end
 

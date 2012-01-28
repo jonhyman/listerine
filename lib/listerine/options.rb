@@ -9,7 +9,7 @@ module Listerine
     attr_accessor :levels, :recipients
 
     def initialize
-      @levels = []
+      @levels = [{:level => DEFAULT_LEVEL}]
       @recipients = []
 
       # Set the default persistence to Sqlite
@@ -26,6 +26,8 @@ module Listerine
       recip = {:email => email}
       if opts[:when]
         recip[:level] = opts[:when]
+      else
+        recip[:level] = DEFAULT_LEVEL
       end
       @recipients << recip
     end
@@ -52,26 +54,17 @@ module Listerine
     end
 
     def recipient(level)
-      default_level = DEFAULT_LEVEL
       return nil if @recipients.empty?
 
-      if level.nil?
-        recip = @recipients.first
-      else
-        # For default levels, no level should be set with the recipient.
-        if level == default_level
-          level = nil
-        end
-        recip = @recipients.select {|r| r[:level] == level}
+      recip = @recipients.select {|r| r[:level] == level}
 
-        # If we don't have a recipient, return the recipient for default level
-        if recip.empty? && level != default_level
-          return recipient(default_level)
-        end
-
-        return nil if recip.empty?
-        recip = recip.first
+      # If we don't have a recipient, return the recipient for default level
+      if recip.empty? && level != DEFAULT_LEVEL
+        return recipient(DEFAULT_LEVEL)
       end
+
+      return nil if recip.empty?
+      recip = recip.first
       recip[:email]
     end
 
@@ -93,18 +86,12 @@ module Listerine
 
     def is(*args)
       opts = args.extract_options!
-      @levels ||= []
-
       if args.empty?
-        if @levels.length == 1 && @levels.first[:environment].nil?
-          @levels.first[:level]
+        level = @levels.select {|l| l[:environment] == current_environment }
+        if level.empty?
+          DEFAULT_LEVEL
         else
-          level = @levels.select {|l| l[:environment] == current_environment }
-          if level.empty?
-            DEFAULT_LEVEL
-          else
-            level.first[:level]
-          end
+          level.first[:level]
         end
       else
         name = args.first
