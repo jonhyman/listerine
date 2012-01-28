@@ -99,7 +99,7 @@ Listerine::Runner.instance.run
 
 When using multiple environments, you can also define different recipients for the failure notification. Set a
 criticality level on the monitor using `is`, and when defining recipients in the `configure` block, indicate which
-recipients are for which criticality level. Criticality levels are arbitrary symbols that you can define. In this
+recipients are for which criticality level. Criticality levels are arbitrary symbols that you define. In this
 example we'll use `:critical` but it could be whatever you want.
 
 ```ruby
@@ -172,7 +172,7 @@ Customizing notification thresholds
 
 You might not want to get notified the first time a monitor fails. When defining a monitor, you can define variables
 to `notify_after` some number of consecutive failures, and after you've received a notification, to
-`then_notify_every` every x failures after that.
+`then_notify_every` x failures after that.
 
 These options can be defined locally on a monitor, or globally set in the `configure` block. By default, both values
 are set to 1.
@@ -229,8 +229,8 @@ Configure Options
 --------------
 The following are the global options you can set in the `configure` block.
 
-* `from`: The email address from which your notifications are sent
-* `notify` with an optional `:in => :environment`: The recipients of notifications
+* `from` - The email address from which your notifications are sent
+* `notify` with an optional `:in => :environment` - The recipients of notifications
 
 
 You can set the follow options globally in the `configure` block to avoid having to redefine on each monitor:
