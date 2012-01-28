@@ -1,6 +1,8 @@
 module Listerine
   class Monitor
-    attr_reader :name, :description, :environments, :notify_after, :notify_every, :levels, :current_environment
+    attr_reader :name, :description, :environments, :notify_after, :then_notify_every, :levels, :current_environment
+    HTTP_STATUS_OK = 200
+    HTTP_STATUS_BAD_GATEWAY = 502
 
     def self.configure(&block)
       Listerine::Options.instance.configure(&block)
@@ -40,14 +42,14 @@ module Listerine
 
         # Ensure that we have a boolean value from the assert call.
         unless result.instance_of?(TrueClass) || result.instance_of?(FalseClass)
-          raise TypeError.new("Assertions must return a boolean value. Monitor #{self.name} returned #{result}.")
+          raise TypeError.new("Assertions must return a boolean value. Monitor #{self.name} returned #{result} (#{result.class}).")
         end
 
         outcome = Listerine::Outcome.new(result)
         track_failures(outcome) do |failure_count|
-          # Notify after notify_after failures, but then only notify every notify_every failures.
+          # Notify after notify_after failures, but then only notify every then_notify_every failures.
           if failure_count >= self.notify_after &&
-              (failure_count == self.notify_after || ((failure_count + self.notify_after) % self.notify_every == 0))
+              (failure_count == self.notify_after || ((failure_count + self.notify_after) % self.then_notify_every == 0))
             notify(append_to_notify)
           end
 
@@ -127,22 +129,27 @@ module Listerine
     end
 
     # Sets the assert block that a +url+ returns 200 when hit via HTTP +method+ (default to GET)
-    def assert_online(url, method = :get)
-      http_status_ok = 200
+    def assert_online(url, opts = {})
+      method = opts[:method] || :get
+      ignore_502 = opts[:ignore_502].nil? ? false : opts[:ignore_502]
 
       assert do
         begin
           rc = RestClient.__send__(method, url)
           code = rc.code
         rescue Exception => e
-          code = nil
+          if ignore_502 && e.message.include?(HTTP_STATUS_BAD_GATEWAY.to_s)
+            code = HTTP_STATUS_BAD_GATEWAY
+          else
+            code = nil
+          end
         end
 
-        if code != http_status_ok
+        if code != HTTP_STATUS_OK
           Listerine::Logger.error("#{url} returned status code #{code}")
         end
 
-        code == http_status_ok
+        code == HTTP_STATUS_OK || (ignore_502 && code == HTTP_STATUS_BAD_GATEWAY)
       end
     end
 
@@ -173,8 +180,8 @@ module Listerine
       get_set_property(:description, *val)
     end
 
-    def notify_every(*val)
-      get_set_property(:notify_every, *val)
+    def then_notify_every(*val)
+      get_set_property(:then_notify_every, *val)
     end
 
     def notify_after(*val)
@@ -206,7 +213,7 @@ module Listerine
         else
           level = @levels.select {|l| l[:environment] == self.current_environment }
           if level.empty?
-            :default
+            Listerine::Options::DEFAULT_LEVEL
           else
             level.first[:level]
           end

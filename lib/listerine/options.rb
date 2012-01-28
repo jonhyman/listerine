@@ -1,6 +1,7 @@
 require 'singleton'
 module Listerine
   class Options
+    DEFAULT_LEVEL = :default
     DEFAULT_NOTIFY_EVERY = 1
     DEFAULT_NOTIFY_AFTER = 1
     DEFAULT_FROM = "functional-monitors@example.com"
@@ -51,7 +52,7 @@ module Listerine
     end
 
     def recipient(level)
-      default_level = :default
+      default_level = DEFAULT_LEVEL
       return nil if @recipients.empty?
 
       if level.nil?
@@ -74,11 +75,11 @@ module Listerine
       recip[:email]
     end
 
-    def notify_every(*val)
+    def then_notify_every(*val)
       if val.empty?
-        @notify_every ||= DEFAULT_NOTIFY_EVERY
+        @then_notify_every ||= DEFAULT_NOTIFY_EVERY
       else
-        @notify_every = val.first
+        @then_notify_every = val.first
       end
     end
 
@@ -100,7 +101,7 @@ module Listerine
         else
           level = @levels.select {|l| l[:environment] == current_environment }
           if level.empty?
-            :default
+            DEFAULT_LEVEL
           else
             level.first[:level]
           end

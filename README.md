@@ -1,17 +1,20 @@
 Listerine
 =========
 
-Listerine is a simple functional monitoring framework that enables you to quickly create customizable functional monitors with full alerting capability.
+Listerine is a simple functional monitoring framework that enables you to quickly create customizable functional
+monitors with full alerting capability.
 
 Listerine is not a process monitoring framework like [God](http://godrb.com) but instead intended for functional test
 application monitoring.
 
-This project was originally created as a self-service for [Appboy](http://www.appboy.com) as a replacement to more expensive and less featured services such as CloudKick.
+This project was originally created as a self-service for [Appboy](http://www.appboy.com) as a replacement to more
+expensive and less featured services such as CloudKick.
 
-Listerines enables you to monitor all levels of your web applications and services. Some common examples include:
+Listerine enables you to monitor all levels of your web applications and services. Some common examples include:
 
 * Ensure that your caching layer is functioning properly
 * Make sure that you have X available Resque workers
+* Make sure that your Resque Scheduler agent is online
 * Check that your hosted database is online (e.g., if you use MongoHQ or RedisToGo)
 * POST to your API and verify return values
 
@@ -23,7 +26,9 @@ Installation
 Overview
 --------
 
-Listerine allows you to define simple script monitors that contain an <em>assertion</em>. When the assertion is true, the monitor has succeeded. When the assertion becomes false the monitor has failed and will act accordingly.
+Listerine allows you to define simple script monitors that contain an <em>assertion</em>. When the assertion is true,
+the monitor has succeeded. When the assertion evaluates to false the monitor is marked as failed, sends a notification,
+and can run optional code on failure.
 
 All monitors must contain both `name` and `assert` blocks. Unhandled exceptions are caught and treated as
 failures, with the exception text and backtrace included in the notification. Here's an example:
@@ -57,7 +62,9 @@ end
 Listerine::Runner.instance.run
 ```
 
-To run this file regularly, schedule a cron job.
+To run this file regularly, schedule a cron job such as the below to run monitors every 2 minutes.
+
+    */2 * * * * /path/to/monitor/file.rb
 
 Multiple environments
 ---------------------
@@ -92,7 +99,8 @@ Listerine::Runner.instance.run
 
 When using multiple environments, you can also define different recipients for the failure notification. Set a
 criticality level on the monitor using `is`, and when defining recipients in the `configure` block, indicate which
-recipients are for which criticality level. Criticality levels are arbitrary symbols. For example:
+recipients are for which criticality level. Criticality levels are arbitrary symbols that you can define. In this
+example we'll use `:critical` but it could be whatever you want.
 
 ```ruby
 Listerine::Monitor.configure do
@@ -102,9 +110,6 @@ Listerine::Monitor.configure do
 
   # When an alert fails that is of criticality level critical, notify critical@example.com
   notify "critical@example.com", :when => :critical
-
-  # When a
-  notify "warn@example.com", :when => :foobar
 end
 
 Listerine::Monitor.new do
@@ -113,7 +118,7 @@ Listerine::Monitor.new do
   environments :staging, :production
   # This monitor is critical when running in the production environment
   is :critical, :in => :production
-  # The criticality levels can be anything you want. It defaults to :default.
+  # The criticality levels can be anything you want. It defaults to :default to notify the default recipient.
   is :foobar, :in => :staging
   assert do
     # Setup a different connection based on the current environment
@@ -134,15 +139,40 @@ Listerine::Runner.instance.run
 
 If a recipient is not declared for a criticality level, Listerine will use the default recipient.
 
-Criticality levels can be set globally in the `configure` block so you can make all production monitors critical, etc.
+Criticality levels can be set globally in the `configure` block so you can make all production monitors `:critical`,
+etc.
+
+Note: You don't need to use multiple environments to set criticality levels. These are perfectly valid monitors:
+
+ ```ruby
+ Listerine::Monitor.configure do
+  notify "alerts-warning@example.com"
+  notify "alerts-critical@example.com", :when => :critical
+ end
+
+ Listerine::Monitor.new do
+  name "Site online"
+  is :critical
+  assert do
+    # Some code to check that the site is online
+  end
+ end
+
+ Listerine::Monitor.new do
+  name "Internal wiki online"
+  assert do
+    ...
+  end
+ end
+ ```
 
 
 Customizing notification thresholds
 -----------------------------------
 
 You might not want to get notified the first time a monitor fails. When defining a monitor, you can define variables
-to `notify_after` some number of consecutive failures, and then after you've received a notification, to
-`notify_every` x failures after that.
+to `notify_after` some number of consecutive failures, and after you've received a notification, to
+`then_notify_every` every x failures after that.
 
 These options can be defined locally on a monitor, or globally set in the `configure` block. By default, both values
 are set to 1.
@@ -154,7 +184,7 @@ Listerine::Monitor.new do
   # Don't notify until there have been 2 consecutive failures
   notify_after 2
   # After 2 failures, only send a new notification every 3 failures
-  notify_every 3
+  then_notify_every 3
   assert do
     # Connect to cache
     cache = ...
@@ -170,7 +200,7 @@ Adding custom actions for failures
 ----------------------------------
 
 When a monitor fails, you might want to take custom action. For example, you might want to reboot a machine after 5
-consecutive failures. To do that, you can pass a block to `if_failing`, which will be yielded with the current
+consecutive failures. To do that, you can pass a block to `if_failing`, which will be yielded to with the current
 consecutive failure count.
 
 Listerine also provides a wrapper around sending mail, `Listerine::Mailer.mail(to, subject, body)` if you want to add
@@ -194,14 +224,15 @@ Listerine::Monitor.new do
 end
 ```
 
+
 Global options
 --------------
 
 You can set the follow options globally in the `configure` block to avoid having to redefine on each monitor:
 
-* `level`
-* `notify_after`
-* `notify_every`
+* `is` - defaults to `:default`
+* `notify_after` - defaults to `1`
+* `then_notify_every` - defaults to `1`
 
 
 Helper functions
@@ -218,6 +249,8 @@ Listerine::Monitor.new do
   assert_online "http://blog.example.com"
 end
 ```
+
+We use CloudFlare, and CloudFlare is somewhat flaky, so you can pass in `:ignore_502 => true` to ignore 502 errors.
 
 Notes
 -----

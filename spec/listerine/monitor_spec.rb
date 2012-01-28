@@ -55,14 +55,14 @@ describe Listerine::Monitor do
     # Because Listerine::Options is a singleton, we need to clear out the values we set in these tests
     after :each do
       Listerine::Monitor.configure do
-        notify_every nil
+        then_notify_every nil
         notify_after nil
       end
     end
 
-    it "configures default values for notify_every" do
+    it "configures default values for then_notify_every" do
       Listerine::Monitor.configure do
-        notify_every 3
+        then_notify_every 3
       end
 
       m = Listerine::Monitor.new do
@@ -70,7 +70,7 @@ describe Listerine::Monitor do
         assert {true}
       end
 
-      m.notify_every.should == 3
+      m.then_notify_every.should == 3
     end
 
     it "configures default values for notify_after" do
@@ -159,22 +159,22 @@ describe Listerine::Monitor do
     end
   end
 
-  context "#notify_every" do
+  context "#then_notify_every" do
     it "defaults to Listerine::Options::DEFAULT_NOTIFY_EVERY" do
       m = Listerine::Monitor.new do
         name "My monitor"
         assert {true}
       end
-      m.notify_every.should == Listerine::Options::DEFAULT_NOTIFY_EVERY
+      m.then_notify_every.should == Listerine::Options::DEFAULT_NOTIFY_EVERY
     end
 
     it "can be set on construction" do
       m = Listerine::Monitor.new do
         name "My monitor"
-        notify_every 2
+        then_notify_every 2
         assert {true}
       end
-      m.notify_every.should == 2
+      m.then_notify_every.should == 2
     end
 
     it "sets the threshold of failures after the first one which notifications are sent" do
@@ -185,7 +185,7 @@ describe Listerine::Monitor do
       m = Listerine::Monitor.new do
         name "My monitor"
         notify_after 3
-        notify_every 2
+        then_notify_every 2
         assert {false}
       end
 
@@ -609,12 +609,36 @@ describe Listerine::Monitor do
 
     [:post, :get, :delete, :put].each do |type|
       it "can use other HTTP types such as #{type.to_s.upcase}" do
-        m = eval("Listerine::Monitor.new do; name 'My monitor'; assert_online 'http://www.example.com', :#{type}; end;")
+        m = eval("Listerine::Monitor.new do; name 'My monitor'; assert_online 'http://www.example.com', :method => :#{type}; end;")
         response = mock('response', :code => 200)
         RestClient.stub(type).with("http://www.example.com").and_return(response)
         outcome = m.run
         outcome.result.should == Listerine::Outcome.new(true).result
       end
+    end
+
+    it "ignores 502 errors if :ignore_502 is passed in as an option" do
+      m = Listerine::Monitor.new do
+        name "My monitor"
+        assert_online "http://www.example.com", :ignore_502 => true
+      end
+
+      RestClient.stub(:get).and_raise(Exception.new("502 Bad Gateway"))
+
+      outcome = m.run
+      outcome.result.should == Listerine::Outcome.new(true).result
+    end
+
+    it "does not ignore 502 errors by default" do
+      m = Listerine::Monitor.new do
+        name "My monitor"
+        assert_online "http://www.example.com"
+      end
+
+      RestClient.stub(:get).and_raise(Exception.new("502 Bad Gateway"))
+
+      outcome = m.run
+      outcome.result.should == Listerine::Outcome.new(false).result
     end
   end
 end
