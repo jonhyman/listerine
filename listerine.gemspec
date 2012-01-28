@@ -18,5 +18,6 @@ Gem::Specification.new do |s|
   s.add_dependency("pony")
   s.add_dependency("sqlite3")
   s.add_dependency("sinatra")
+  s.add_dependency("thin")
   s.add_development_dependency("rspec")
 end
