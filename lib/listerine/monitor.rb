@@ -204,6 +204,8 @@ module Listerine
     end
 
     def is(*args)
+      # TODO - clean up levels and recipients
+
       opts = args.extract_options!
       @levels ||= Listerine::Options.instance.levels.dup
 
@@ -233,7 +235,6 @@ module Listerine
         end
       end
     end
-
     alias :level :is
 
     protected

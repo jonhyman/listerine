@@ -34,9 +34,8 @@ module Listerine
 
     # Sets the persistence layer for the monitors
     def persistence(type, opts = {})
-      if type == :sqlite
-        @persistence = Listerine::Persistence::Sqlite.new(opts)
-      end
+      klass = type.to_s.capitalize
+      @persistence = Listerine::Persistence::const_get(klass).new(opts)
     end
 
     # Retrieves the instantiated persistence layer
@@ -86,6 +85,7 @@ module Listerine
 
     def is(*args)
       opts = args.extract_options!
+      # TODO - clean up levels and recipients
       if args.empty?
         level = @levels.select {|l| l[:environment] == current_environment }
         if level.empty?

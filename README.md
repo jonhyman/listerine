@@ -251,7 +251,7 @@ Listerine::Monitor.new do
   name "Site online"
   is :critical
   description "Makes sure that the site is online."
-  assert_online "http://blog.example.com"
+  assert_online "http://www.example.com"
 end
 ```
 
@@ -270,6 +270,9 @@ Listerine::Monitor.configure do
 end
 ```
 
+Other persistence backends can be created by adhering to the interface Listerine::Persistence::PersistenceLayer. Then
+pass in via the `:persistence` option. Listerine will automatically find a class that is the `#capitalize`d version of
+the option, so `:persistence => :mysql` will new up Listerine::Persistence::Mysql.
 
 Listerine Server
 ================

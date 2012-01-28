@@ -1,7 +1,8 @@
 require 'sqlite3'
 module Listerine
   module Persistence
-    class Sqlite
+    class Sqlite < PersistenceLayer
+      # TODO - clean up all these tables; most were jammed in and don't rationalize well
       METADATA_TABLE_NAME = "functional_monitors"
       RUN_HISTORY_TABLE_NAME = "run_history"
       DISABLED_MONITOR_TABLE_NAME = "disabled_monitors"
