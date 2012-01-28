@@ -8,7 +8,7 @@ Listerine is not a process monitoring framework like [God](http://godrb.com) but
 application monitoring.
 
 This project was originally created as a self-service for [Appboy](http://www.appboy.com) as a replacement to more
-expensive and less featured services such as CloudKick.
+expensive services.
 
 Listerine enables you to monitor all levels of your web applications and services. Some common examples include:
 
@@ -225,8 +225,13 @@ end
 ```
 
 
-Global options
+Configure Options
 --------------
+The following are the global options you can set in the `configure` block.
+
+* `from`: The email address from which your notifications are sent
+* `notify` with an optional `:in => :environment`: The recipients of notifications
+
 
 You can set the follow options globally in the `configure` block to avoid having to redefine on each monitor:
 
