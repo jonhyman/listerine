@@ -263,9 +263,6 @@ Notes
 -----
 The `name` field must be unique across all defined monitors.
 
-`Listerine::Runner.instance.run` will run all monitors. If you want to run a single monitor, assign the monitor to a
-variable and call `#run`.
-
 ### Persistence
 
 Right now the persistence for these monitors is stored in a Sqlite3 database which is stored by default at
