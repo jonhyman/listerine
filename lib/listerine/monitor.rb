@@ -110,7 +110,7 @@ module Listerine
         body = "Monitor failure: #{name}. Failure count: #{failure_count}\n#{append_to_body}"
 
         if self.current_environment
-          subject = "[#{self.current_environment.upcase}] #{subject}"
+          subject = "[#{self.current_environment.to_s.upcase}] #{subject}"
         end
 
         Listerine::Mailer.mail(recipient, subject, body)
