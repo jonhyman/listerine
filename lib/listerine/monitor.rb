@@ -107,7 +107,7 @@ module Listerine
       recipient = Listerine::Options.instance.recipient(level())
       if recipient
         subject = "Monitor failure: #{name}"
-        body = "Monitor failure: #{name}. Failure count: #{failure_count}\n#{append_to_body}"
+        body = "Monitor failure: #{name}. Failure count: #{self.failure_count + 1}\n#{append_to_body}"
 
         if self.current_environment
           subject = "[#{self.current_environment.to_s.upcase}] #{subject}"

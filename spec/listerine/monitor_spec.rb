@@ -499,7 +499,7 @@ describe Listerine::Monitor do
       end
 
       StandardError.any_instance.stub(:backtrace).and_return("backtrace")
-      Listerine::Mailer.should_receive(:mail).with("jon@example.com", anything, "Monitor failure: My monitor. Failure count: 0\nUncaught exception running My monitor: Exception!. Backtrace: backtrace")
+      Listerine::Mailer.should_receive(:mail).with("jon@example.com", anything, "Monitor failure: My monitor. Failure count: 1\nUncaught exception running My monitor: Exception!. Backtrace: backtrace")
       m.run
     end
   end
