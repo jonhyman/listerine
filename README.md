@@ -62,6 +62,10 @@ end
 Listerine::Runner.instance.run
 ```
 
+If you were to run this file, the output would look like:
+
+    * Database online	PASS
+
 To run this file regularly, schedule a cron job such as the below to run monitors every 2 minutes.
 
     */2 * * * * /path/to/monitor/file.rb
