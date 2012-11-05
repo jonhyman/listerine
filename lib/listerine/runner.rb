@@ -19,6 +19,9 @@ module Listerine
           Listerine::Logger.error("Uncaught exception running #{monitor.name}: #{e}")
         end
       end
+
+      # Prune the database
+      Listerine::Options.instance.persistence_layer.prune()
     end
 
     def add_monitor(monitor)

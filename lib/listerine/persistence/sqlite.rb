@@ -58,6 +58,9 @@ module Listerine
         if @db.table_info(RUN_HISTORY_TABLE_NAME).empty?
           stmt = "CREATE TABLE #{RUN_HISTORY_TABLE_NAME} (name VARCHAR(1024), outcome VARCHAR(16), env VARCHAR(255), time DATETIME)"
           @db.execute(stmt)
+
+          index_stmt = "CREATE INDEX index_run_history ON #{RUN_HISTORY_TABLE_NAME} (time DESC)"
+          @db.execute(index_stmt)
         end
 
         if @db.table_info(DISABLED_MONITOR_TABLE_NAME).empty?
@@ -147,6 +150,11 @@ module Listerine
 
       def environments(name)
         @db.execute("SELECT DISTINCT env FROM #{RUN_HISTORY_TABLE_NAME} WHERE name=?", name).map {|r| r[0]}
+      end
+
+      def prune
+        # Only save the last 3 days worth of data
+        @db.execute("DELETE FROM #{RUN_HISTORY_TABLE_NAME} WHERE time <= ?", (Time.now - (60 * 60 * 24 * 3)).to_s())
       end
 
       private

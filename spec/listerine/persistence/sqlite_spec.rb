@@ -210,4 +210,16 @@ describe Listerine::Persistence::Sqlite do
       persistence.get_settings("My monitor").should == {}
     end
   end
+
+  context "#prune" do
+    let(:name) {"foo"}
+    let(:environment) {"bar"}
+
+    it "deletes run history older than 3 days" do
+      persistence.write_outcome(name, Listerine::Outcome.new(true, Time.now - (60 * 60 * 24 * 5)), environment)
+      persistence.write_outcome(name, Listerine::Outcome.new(true, Time.now - (60 * 60 * 24 * 2)), environment)
+      persistence.prune()
+      persistence.outcomes(name, environment).length.should == 1
+    end
+  end
 end

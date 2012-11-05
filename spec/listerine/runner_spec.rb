@@ -48,6 +48,11 @@ describe Listerine::Runner do
       $global2.should == 2
     end
 
+    it "prunes the persistence layer" do
+      Listerine::Options.instance.persistence_layer.should_receive(:prune)
+      Listerine::Runner.instance.run
+    end
+
     it "does not let exceptions from one monitor stop the other monitors from running" do
       $global = 0
       $global2 = 0
