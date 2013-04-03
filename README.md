@@ -8,7 +8,7 @@ Listerine is not a process monitoring framework like [God](http://godrb.com) but
 application monitoring.
 
 This project was originally created as a self-service for [Appboy](http://www.appboy.com) as a replacement for more
-expensive services.
+expensive services. [Read the blog post introducing it](http://blog.appboy.com/2012/07/functional-monitoring-with-listerine/).
 
 Listerine enables you to monitor all levels of your web applications and services. Some common examples include:
 
@@ -289,7 +289,7 @@ them on a per-environment basis.
 
 Check `examples/config.ru` for a functional example (including HTTP basic auth).
 
-![Listerine Server](https://raw.github.com/Appboy/listerine/master/examples/images/listerine_server.png)
+![Listerine Server](https://raw.github.com/jonhyman/listerine/master/examples/images/listerine_server.png)
 
 Installation
 ------------
